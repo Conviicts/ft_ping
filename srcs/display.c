@@ -6,7 +6,7 @@
 /*   By: jode-vri <jode-vri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/12 12:24:15 by jode-vri          #+#    #+#             */
-/*   Updated: 2022/12/12 12:32:31 by jode-vri         ###   ########.fr       */
+/*   Updated: 2022/12/12 13:31:17 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ void	print_stats(t_target *t)
 	if (t->recv_count > 0)
 		printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n",
 			t->conn.duration_min, avg, t->conn.duration_max, sqrt(total));
-	free(t->conn.res);
+	freeaddrinfo(t->conn.res);
 	free(t->destination);
 	exit(0);
 }
