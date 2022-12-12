@@ -1,0 +1,4 @@
+.vscode
+**/*.o
+ft_ping
+**/*.a
