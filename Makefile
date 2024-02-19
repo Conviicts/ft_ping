@@ -1,6 +1,6 @@
 NAME		= ft_ping
 
-INCLUDES	= -I ./inc/ -I ./libft/includes/
+INCLUDES	= -I ./includes/ -I ./libft/
 
 CC			= gcc
 CFLAGS		= -Wall -Wextra -Werror $(INCLUDES) -g
