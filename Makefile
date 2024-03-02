@@ -7,6 +7,7 @@ CFLAGS		= -Wall -Wextra -Werror $(INCLUDES) -g
 LIBS		= -L libft/ -lft -lm
 
 SRCS		=	main.c \
+				utils.c
 
 OBJS		= $(addprefix ./src/, $(SRCS:.c=.o))
 
