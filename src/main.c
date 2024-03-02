@@ -6,7 +6,7 @@
 /*   By: jode-vri <jode-vri@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 06:03:17 by jode-vri          #+#    #+#             */
-/*   Updated: 2024/03/02 20:34:38 by jode-vri         ###   ########.fr       */
+/*   Updated: 2024/03/02 20:45:50 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,5 +56,6 @@ int		main(int ac, char **av) {
 	ping.hostname = av[pos];
 	ping.destination = get_hostname(ping.hostname);
 	ping.pid = getpid();
-	
+	if (!init_socket(&ping))
+		return (1);
 }

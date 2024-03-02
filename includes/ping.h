@@ -6,7 +6,7 @@
 /*   By: jode-vri <jode-vri@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 06:09:54 by jode-vri          #+#    #+#             */
-/*   Updated: 2024/03/02 20:34:19 by jode-vri         ###   ########.fr       */
+/*   Updated: 2024/03/02 20:45:32 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
 typedef struct s_options {
 	bool	verbose;
@@ -40,9 +41,11 @@ typedef struct s_ping {
 	char		*destination;
 	char 		*source;
 	pid_t		pid;
+	int			fd;
 	t_options	options;
 }	t_ping;
 
 char	*get_hostname(char *hostname);
+bool	init_socket(t_ping *ping);
 
 #endif
