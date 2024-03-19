@@ -8,7 +8,9 @@ LIBS		= -L libft/ -lft -lm
 
 SRCS		=	main.c		\
 				utils.c		\
-				socket.c
+				socket.c	\
+				signal.c	\
+				loop.c
 
 OBJS		= $(addprefix ./src/, $(SRCS:.c=.o))
 

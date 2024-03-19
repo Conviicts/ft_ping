@@ -6,11 +6,13 @@
 /*   By: jode-vri <jode-vri@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 06:03:17 by jode-vri          #+#    #+#             */
-/*   Updated: 2024/03/02 20:45:50 by jode-vri         ###   ########.fr       */
+/*   Updated: 2024/03/10 08:02:42 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ping.h"
+
+struct s_ping	*g_ping;
 
 void	print_help(void) {
 	printf("Try 'ping --help' or 'ping --usage' for more information.\n");
@@ -35,6 +37,17 @@ int		parse_options(t_ping *ping, int ac, char **av) {
 	return (optind);
 }
 
+static void	init(t_ping *ping, char **av, int pos) {
+	g_ping = ping;
+	ping->options.ttl = 64;
+	ping->options.interval = 1;
+	ping->dest.hostname = av[pos];
+	ping->dest.destination = get_hostname(ping->dest.hostname);
+	ping->pid = getpid();
+	ping->wait = false;
+	ft_bzero(&ping->stats, sizeof(t_stats));
+}
+
 int		main(int ac, char **av) {
 	t_ping	ping;
 	int		pos;
@@ -48,14 +61,10 @@ int		main(int ac, char **av) {
 		printf("ft_ping: Lacking privilege for icmp socket.\n");
 		return (1);
 	}
-	ft_bzero(&ping, sizeof(t_ping));
 	pos = parse_options(&ping, ac, av);
-	ping.options.interval = 1;
-	ping.options.timeout = 1;
-	ping.options.ttl = 64;
-	ping.hostname = av[pos];
-	ping.destination = get_hostname(ping.hostname);
-	ping.pid = getpid();
-	if (!init_socket(&ping))
-		return (1);
+	init(&ping, av, pos);
+	signal(SIGINT, &signal_handler);
+	signal(SIGALRM, &signal_handler);
+	loop(&ping);
+	free(ping.dest.destination);
 }
