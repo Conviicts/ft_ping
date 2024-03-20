@@ -6,11 +6,25 @@
 /*   By: jode-vri <jode-vri@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 07:42:46 by jode-vri          #+#    #+#             */
-/*   Updated: 2024/03/20 09:38:12 by jode-vri         ###   ########.fr       */
+/*   Updated: 2024/03/20 09:54:39 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ping.h"
+
+uint16_t	checksum(void *addr, int size) {
+	uint16_t	*buff;
+	uint32_t	sum;
+
+	buff = (uint16_t *)addr;
+	for (sum = 0; size > 1; size -= 2)
+		sum += *buff++;
+	if (size == 1)
+		sum += *(uint8_t*)buff;
+	sum = (sum >> 16) + (sum & 0xFFFF);
+	sum += (sum >> 16);
+	return (~sum);
+}
 
 void	init_packet(t_packet *packet, time_t time) {
 	ft_bzero(packet, sizeof(t_packet));
@@ -20,7 +34,8 @@ void	init_packet(t_packet *packet, time_t time) {
 	packet->icmp.icmp_id = getpid();
 	g_ping->stats.transmitted++;
 	packet->icmp.icmp_seq = g_ping->stats.transmitted;
-	packet->time = time;
+	packet->icmp.icmp_cksum = checksum(packet, sizeof(*packet));
+	packet->timestamp = time;
 	ft_memcpy(&packet->icmp.icmp_dun, &time, sizeof(time));
 	//TODO: packet checksum
 }
@@ -50,9 +65,9 @@ void	loop(t_ping *ping) {
 				ping->wait = true;
 				alarm(ping->options.interval);
 			}
-			printf("%d %p %d\n", ping->fd, ping->dest.res->ai_addr, ping->dest.res->ai_addrlen);
-			printf("%p %ld\n", &packet, sizeof(packet));
-			if (sendto(ping->fd, &packet, sizeof(packet), 0, (struct sockaddr *)ping->dest.res->ai_addr, ping->dest.res->ai_addrlen) == -1) {
+            char buffer[56];
+            ft_bzero(&buffer, sizeof(buffer));
+			if (sendto(ping->fd, &buffer, sizeof(buffer), 0, (struct sockaddr *)ping->dest.res->ai_addr, ping->dest.res->ai_addrlen) == -1) {
 				// perror("sendto");
 				printf("sendto: %s\n", strerror(errno));
 				//TODO: exit properly

@@ -6,7 +6,7 @@
 /*   By: jode-vri <jode-vri@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/02 20:38:17 by jode-vri          #+#    #+#             */
-/*   Updated: 2024/03/20 09:25:55 by jode-vri         ###   ########.fr       */
+/*   Updated: 2024/03/20 09:47:29 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 int		init_socket() {
 	int		fd;
 
-	if ((fd = socket(g_ping->dest.res->ai_family, g_ping->dest.res->ai_socktype, g_ping->dest.res->ai_protocol)) == -1) {
+	if ((fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) == -1) {
 		perror("socket");
 		//TODO: exit properly
 		exit(EXIT_FAILURE);

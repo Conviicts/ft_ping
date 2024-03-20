@@ -6,7 +6,7 @@
 /*   By: jode-vri <jode-vri@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 06:09:54 by jode-vri          #+#    #+#             */
-/*   Updated: 2024/03/20 09:26:20 by jode-vri         ###   ########.fr       */
+/*   Updated: 2024/03/20 09:50:27 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,14 +41,14 @@ typedef struct s_options {
 
 typedef struct s_packet {
 	struct icmp	icmp;
-	time_t		time;
+	time_t		timestamp;
 	char		data[PACKET_SIZE];
 }	t_packet;
 
 typedef struct	s_dest {
 	char				*hostname;
 	int					family;
-	// struct sockaddr_in	*sa_in;
+	struct sockaddr_in	*sa_in;
 	struct addrinfo		*res;
 	char				ip[INET_ADDRSTRLEN];
 }		t_dest;

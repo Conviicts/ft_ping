@@ -6,7 +6,7 @@
 /*   By: jode-vri <jode-vri@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 06:03:17 by jode-vri          #+#    #+#             */
-/*   Updated: 2024/03/20 09:26:15 by jode-vri         ###   ########.fr       */
+/*   Updated: 2024/03/20 09:56:06 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,13 +23,15 @@ void	get_ip(t_ping *ping) {
 	struct addrinfo	hints;
 	
 	ft_memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	// hints.ai_socktype = SOCK_STREAM;
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
 	if (getaddrinfo(ping->dest.hostname, NULL, &hints, &ping->dest.res) == -1) {
 		dprintf(STDERR_FILENO, "ft_ping: %s: Name or service not known\n", ping->dest.hostname);
 		//TODO: exit properly
 		exit(EXIT_FAILURE);
 	}
+	ping->dest.sa_in = (struct sockaddr_in *)ping->dest.res->ai_addr;
+	inet_ntop(ping->dest.res->ai_family, &(ping->dest.sa_in->sin_addr), ping->dest.ip, INET_ADDRSTRLEN);
 }
 
 void	init_ping(t_ping *ping) {
@@ -53,7 +55,7 @@ int		main(int ac, char **av) {
 		return(EXIT_FAILURE);
 	}
 	init_ping(&ping);
-	// printf("%s\n", ping.dest.ip);
+	printf("%s\n", ping.dest.ip);
 	signal(SIGINT, &signal_handler);
 	signal(SIGALRM, &signal_handler);
 	loop(&ping);
