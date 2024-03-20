@@ -7,6 +7,7 @@ CFLAGS		= -Wall -Wextra -Werror $(INCLUDES) -g
 LIBS		= -L libft/ -lft -lm
 
 SRCS		=	main.c		\
+				parser.c	\
 				utils.c		\
 				socket.c	\
 				signal.c	\

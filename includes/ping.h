@@ -6,7 +6,7 @@
 /*   By: jode-vri <jode-vri@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 06:09:54 by jode-vri          #+#    #+#             */
-/*   Updated: 2024/03/10 08:08:43 by jode-vri         ###   ########.fr       */
+/*   Updated: 2024/03/20 09:26:20 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@
 #include <errno.h>
 #include <signal.h>
 
+#define PACKET_SIZE	56
+
 typedef struct s_options {
 	bool	verbose;
 	bool	help;
@@ -37,21 +39,29 @@ typedef struct s_options {
 	unsigned int	ttl;
 }	t_options;
 
-typedef struct s_dest {
-	char		*hostname;
-	char		*destination;
-	char 		*source;
-}	t_dest;
+typedef struct s_packet {
+	struct icmp	icmp;
+	time_t		time;
+	char		data[PACKET_SIZE];
+}	t_packet;
+
+typedef struct	s_dest {
+	char				*hostname;
+	int					family;
+	// struct sockaddr_in	*sa_in;
+	struct addrinfo		*res;
+	char				ip[INET_ADDRSTRLEN];
+}		t_dest;
 
 typedef struct s_stats {
+	int				transmitted;
 	struct timeval	tv_start;
 	struct timeval	tv_end;
 }	t_stats;
 
 typedef struct s_ping {
-	bool		wait;
-	pid_t		pid;
 	int			fd;
+	bool		wait;
 	t_options	options;
 	t_dest		dest;
 	t_stats		stats;
@@ -59,10 +69,10 @@ typedef struct s_ping {
 
 extern struct s_ping	*g_ping;
 
-char	*get_hostname(char *hostname);
-bool	init_socket(t_ping *ping);
+bool	parse_options(t_ping *ping, int ac, char **av);
 
 void    signal_handler(int sig);
+int		init_socket();
 
 void    loop(t_ping *ping);
 
