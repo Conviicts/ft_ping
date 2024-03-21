@@ -6,7 +6,7 @@
 /*   By: jode-vri <jode-vri@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 06:03:17 by jode-vri          #+#    #+#             */
-/*   Updated: 2024/03/20 09:56:06 by jode-vri         ###   ########.fr       */
+/*   Updated: 2024/03/21 08:03:26 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,8 @@ void	get_ip(t_ping *ping) {
 		//TODO: exit properly
 		exit(EXIT_FAILURE);
 	}
-	ping->dest.sa_in = (struct sockaddr_in *)ping->dest.res->ai_addr;
-	inet_ntop(ping->dest.res->ai_family, &(ping->dest.sa_in->sin_addr), ping->dest.ip, INET_ADDRSTRLEN);
+	ft_memcpy(&(ping->dest.sa_in), (void *)ping->dest.res->ai_addr, sizeof(struct sockaddr_in));
+	inet_ntop(ping->dest.res->ai_family, &(ping->dest.sa_in.sin_addr), ping->dest.ip, INET_ADDRSTRLEN);
 }
 
 void	init_ping(t_ping *ping) {
@@ -43,6 +43,7 @@ void	init_ping(t_ping *ping) {
 		ping->options.ttl = 64;
 	ping->fd = -1;
 	ping->wait = false;
+	ping->running = true;
 	get_ip(ping);
 }
 
@@ -55,7 +56,6 @@ int		main(int ac, char **av) {
 		return(EXIT_FAILURE);
 	}
 	init_ping(&ping);
-	printf("%s\n", ping.dest.ip);
 	signal(SIGINT, &signal_handler);
 	signal(SIGALRM, &signal_handler);
 	loop(&ping);

@@ -6,7 +6,7 @@
 /*   By: jode-vri <jode-vri@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 07:42:46 by jode-vri          #+#    #+#             */
-/*   Updated: 2024/03/21 08:06:55 by jode-vri         ###   ########.fr       */
+/*   Updated: 2024/03/21 08:14:26 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,10 +31,10 @@ void	init_packet(t_packet *packet, time_t time) {
 	
 	packet->icmp.icmp_type = ICMP_ECHO;
 	packet->icmp.icmp_code = 0;
-	packet->icmp.icmp_id = BSWAP16((uint16_t)getpid());
+	packet->icmp.icmp_id = (uint16_t)getpid();
 	g_ping->stats.transmitted++;
-	packet->icmp.icmp_seq = BSWAP16(g_ping->stats.transmitted);
-	packet->timestamp = BSWAP16(time);
+	packet->icmp.icmp_seq = g_ping->stats.transmitted;
+	packet->timestamp = time;
 	ft_memcpy(&packet->icmp.icmp_dun, &time, sizeof(time));
 	packet->icmp.icmp_cksum = checksum(packet, sizeof(*packet));
 }
@@ -48,20 +48,6 @@ void	init_receive_packet(t_response *response) {
 	response->msg.msg_iovlen = 1;
 	response->msg.msg_control = &response->ctrl;
 	response->msg.msg_controllen = sizeof(response->ctrl);
-}
-
-void	print_stat(t_ping *ping, struct timeval *tv_start, int sequence) {
-	struct timeval	tv_diff;
-	
-	ping->stats.received++;
-	if (gettimeofday(&tv_diff, NULL) == -1) {
-		perror("gettimeofday");
-		//TODO: exit properly
-		exit(EXIT_FAILURE);
-	}
-	double diff = (double)(tv_diff.tv_sec - tv_start->tv_sec) * 1000.0 + (double)(tv_diff.tv_usec - tv_start->tv_usec) / 1000.0;
-	printf("%d bytes from %s: icmp_seq=%hu ttl=%d time=%.2lf ms\n", PACKET_SIZE, ping->dest.ip, sequence, ping->options.ttl, diff);
-	//TODO: store stats
 }
 
 void	loop(t_ping *ping) {
@@ -124,5 +110,5 @@ void	loop(t_ping *ping) {
 		
 		while (ping->options.interval > 0 && ping->wait && ping->running);
 	}
-	//TODO: print final stats
+	print_stats(ping);
 }

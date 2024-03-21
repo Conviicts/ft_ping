@@ -11,7 +11,8 @@ SRCS		=	main.c		\
 				utils.c		\
 				socket.c	\
 				signal.c	\
-				loop.c
+				loop.c		\
+				print.c		
 
 OBJS		= $(addprefix ./src/, $(SRCS:.c=.o))
 
