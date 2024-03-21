@@ -6,7 +6,7 @@
 /*   By: jode-vri <jode-vri@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 07:42:46 by jode-vri          #+#    #+#             */
-/*   Updated: 2024/03/20 09:54:39 by jode-vri         ###   ########.fr       */
+/*   Updated: 2024/03/21 08:06:55 by jode-vri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,19 +31,44 @@ void	init_packet(t_packet *packet, time_t time) {
 	
 	packet->icmp.icmp_type = ICMP_ECHO;
 	packet->icmp.icmp_code = 0;
-	packet->icmp.icmp_id = getpid();
+	packet->icmp.icmp_id = BSWAP16((uint16_t)getpid());
 	g_ping->stats.transmitted++;
-	packet->icmp.icmp_seq = g_ping->stats.transmitted;
-	packet->icmp.icmp_cksum = checksum(packet, sizeof(*packet));
-	packet->timestamp = time;
+	packet->icmp.icmp_seq = BSWAP16(g_ping->stats.transmitted);
+	packet->timestamp = BSWAP16(time);
 	ft_memcpy(&packet->icmp.icmp_dun, &time, sizeof(time));
-	//TODO: packet checksum
+	packet->icmp.icmp_cksum = checksum(packet, sizeof(*packet));
+}
+
+void	init_receive_packet(t_response *response) {
+	ft_bzero(response, sizeof(t_response));
+	response->msg.msg_name = NULL;
+	response->msg.msg_iov = &response->iov;
+	response->iov.iov_base = response->recv_buff;
+	response->iov.iov_len = sizeof(response->recv_buff);
+	response->msg.msg_iovlen = 1;
+	response->msg.msg_control = &response->ctrl;
+	response->msg.msg_controllen = sizeof(response->ctrl);
+}
+
+void	print_stat(t_ping *ping, struct timeval *tv_start, int sequence) {
+	struct timeval	tv_diff;
+	
+	ping->stats.received++;
+	if (gettimeofday(&tv_diff, NULL) == -1) {
+		perror("gettimeofday");
+		//TODO: exit properly
+		exit(EXIT_FAILURE);
+	}
+	double diff = (double)(tv_diff.tv_sec - tv_start->tv_sec) * 1000.0 + (double)(tv_diff.tv_usec - tv_start->tv_usec) / 1000.0;
+	printf("%d bytes from %s: icmp_seq=%hu ttl=%d time=%.2lf ms\n", PACKET_SIZE, ping->dest.ip, sequence, ping->options.ttl, diff);
+	//TODO: store stats
 }
 
 void	loop(t_ping *ping) {
-	(void)ping;
 	t_packet		packet;
+	t_response		response;
 	struct timeval	tv_start;
+	int				sequence = 0;
 	bool			need_send = true;
 
 	printf("PING %s (%s): %d data bytes\n", ping->dest.hostname, ping->dest.ip, PACKET_SIZE);
@@ -53,7 +78,7 @@ void	loop(t_ping *ping) {
 		//TODO: exit properly
 		exit(EXIT_FAILURE);
 	}
-	while (true) {
+	while (ping->running) {
 		if (need_send) {
 			if (gettimeofday(&tv_start, NULL) == -1) {
 				perror("gettimeofday");
@@ -65,20 +90,39 @@ void	loop(t_ping *ping) {
 				ping->wait = true;
 				alarm(ping->options.interval);
 			}
-            char buffer[56];
-            ft_bzero(&buffer, sizeof(buffer));
-			if (sendto(ping->fd, &buffer, sizeof(buffer), 0, (struct sockaddr *)ping->dest.res->ai_addr, ping->dest.res->ai_addrlen) == -1) {
+			if (sendto(ping->fd, &packet, sizeof(packet), 0, (struct sockaddr *)&ping->dest.sa_in, sizeof(ping->dest.sa_in)) == -1) {
 				// perror("sendto");
 				printf("sendto: %s\n", strerror(errno));
 				//TODO: exit properly
 				exit(EXIT_FAILURE);
 			}
 		}
-		printf("pd\n");
-		struct msghdr msg;
-		int read_bytes = recvmsg(ping->fd, &msg, 0);
-		printf("read_bytes: %d\n", read_bytes);
+
+		init_receive_packet(&response);
+		int read_bytes = recvmsg(ping->fd, &response.msg, 0);
+		if (read_bytes == 0) {
+			dprintf(STDERR_FILENO, "ft_ping: socket closed\n");
+			//TODO: exit properly
+			exit(EXIT_FAILURE);
+		} else if (read_bytes == -1) {
+			if (errno == EINTR || errno == EAGAIN) {
+				need_send = true;
+				if (ping->options.verbose)
+					printf("Request timeout for icmp_seq %d\n", g_ping->stats.transmitted);
+			} else {
+				perror("recvmsg");
+			}
+		} else {
+			print_stat(ping, &tv_start, sequence);
+		}
+		if (gettimeofday(&ping->stats.tv_end, NULL) == -1) {
+			printf("gettimeofday error\n");
+			//TODO: exit properly
+			exit(EXIT_FAILURE);
+		}
+		sequence++;
 		
-		while (ping->options.interval > 0 && ping->wait);
+		while (ping->options.interval > 0 && ping->wait && ping->running);
 	}
+	//TODO: print final stats
 }
